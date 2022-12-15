@@ -1,0 +1,73 @@
+export CUDA_VISIBLE_DEVICES='2'
+python3 -m torch.distributed.launch --nproc_per_node=1 --master_port 29511 run_summarization.py \
+--learning_rate 2e-4 \
+--model_name_or_path 'paperSummarization' \
+--output_dir 'paperSummarization-prediction-qasper-test' \
+--num_train_epochs 16 \
+--per_device_train_batch_size 32 \
+--per_device_eval_batch_size 32 \
+--warmup_ratio 0.10 \
+--fp16 false \
+--eval_steps 1000 \
+--gradient_accumulation_steps 1 \
+--evaluation_strategy 'steps' \
+--logging_strategy 'steps' \
+--save_strategy 'steps' \
+--save_steps 1000 \
+--logging_steps 1000 \
+--train_file './filter_data/cleanTrain.json' \
+--validation_file './filter_data/cleanDev.json' \
+--test_file './filter_data/qasper/transformData/test.json' \
+--max_source_length 1024 \
+--max_target_length 512 \
+--pad_to_max_length false \
+--source_prefix "Summarization: " \
+--do_train false \
+--do_eval false \
+--do_predict true \
+--ddp_find_unused_parameters true \
+--overwrite_output_dir false \
+--prediction_loss_only false \
+--load_best_model_at_end true \
+--metric_for_best_model 'rougeL' \
+--predict_with_generate true \
+--greater_is_better true \
+--num_beams 5  \
+> prediction-test.log 2>&1
+
+
+python3 -m torch.distributed.launch --nproc_per_node=1 --master_port 29511 run_summarization.py \
+--learning_rate 2e-4 \
+--model_name_or_path 'paperSummarization' \
+--output_dir 'paperSummarization-prediction-qasper-dev' \
+--num_train_epochs 16 \
+--per_device_train_batch_size 32 \
+--per_device_eval_batch_size 32 \
+--warmup_ratio 0.10 \
+--fp16 false \
+--eval_steps 1000 \
+--gradient_accumulation_steps 1 \
+--evaluation_strategy 'steps' \
+--logging_strategy 'steps' \
+--save_strategy 'steps' \
+--save_steps 1000 \
+--logging_steps 1000 \
+--train_file './filter_data/cleanTrain.json' \
+--validation_file './filter_data/cleanDev.json' \
+--test_file './filter_data/qasper/transformData/dev.json' \
+--max_source_length 1024 \
+--max_target_length 512 \
+--pad_to_max_length false \
+--source_prefix "Summarization: " \
+--do_train false \
+--do_eval false \
+--do_predict true \
+--ddp_find_unused_parameters true \
+--overwrite_output_dir false \
+--prediction_loss_only false \
+--load_best_model_at_end true \
+--metric_for_best_model 'rougeL' \
+--predict_with_generate true \
+--greater_is_better true \
+--num_beams 5  \
+> prediction-dev.log 2>&1
