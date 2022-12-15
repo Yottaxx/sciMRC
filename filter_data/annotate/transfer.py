@@ -49,7 +49,7 @@ for dataset in ["Train", "Dev", "Test"]:
             task.append(int(questions["annotateType"]))
             qType.append(qtype2id[questions["questionType"].replace(" ", "").strip("\n")])
 
-    with jsonlines.open("clean{}.json".format(dataset), "w") as writer, \
+    with jsonlines.open("clean{}all.json".format(dataset), "w") as writer, \
             jsonlines.open("clean{}withoutYes.json".format(dataset), "w") as writerWY, \
             jsonlines.open("clean{}withoutGenerative.json".format(dataset), "w") as writerWG, \
             jsonlines.open("clean{}withoutExtractive.json".format(dataset), "w") as writerWE, \
