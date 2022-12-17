@@ -45,9 +45,8 @@ from transformers.file_utils import is_offline_mode
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
-
+from BLEU import Bleu
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
-from metricsSelf import Rouge
 
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/summarization/requirements.txt")
 
@@ -508,8 +507,8 @@ def main():
     #
     #     return preds, labels
 
+    # metric = Bleu()
     metric = evaluate.load("bleu")
-
     def postprocess_text(preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [[label.strip()] for label in labels]
@@ -528,13 +527,16 @@ def main():
 
         # Some simple post-processing
         decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+        print("-----------")
+        print(decoded_preds[:10])
+        print(decoded_labels[:10])
 
         result = metric.compute(predictions=decoded_preds, references=decoded_labels, max_order=1)
-        # result = {"bleu": result["score"]}
+        result = {"bleu": result["bleu"]}
 
         prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
         result["gen_len"] = np.mean(prediction_lens)
-        result = {k: round(v, 4) for k, v in result.items()}
+        # result = {k: round(v, 4) for k, v in result.items()}
         return result
         # result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
         # Extract a few results from ROUGE
