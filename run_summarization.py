@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import datasets
+import jsonlines
 import nltk  # Here to have a nice missing dependency error message early on
 import numpy as np
 from datasets import load_dataset, load_metric
@@ -46,6 +47,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 from BLEU import Bleu
+
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/summarization/requirements.txt")
@@ -509,6 +511,7 @@ def main():
 
     # metric = Bleu()
     metric = evaluate.load("bleu")
+
     def postprocess_text(preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [[label.strip()] for label in labels]
@@ -616,9 +619,12 @@ def main():
                     predict_results.predictions, skip_special_tokens=True, clean_up_tokenization_spaces=True
                 )
                 predictions = [pred.strip() for pred in predictions]
-                output_prediction_file = os.path.join(training_args.output_dir, "generated_predictions.txt")
-                with open(output_prediction_file, "w") as writer:
-                    writer.write("\n".join(predictions))
+                output_prediction_file = os.path.join(training_args.output_dir, "generated_predictions.json")
+                with jsonlines.open(output_prediction_file, "w") as writer:
+                    for i in range(len(predictions)):
+                        writer.write({i: predictions[i]})
+                # with open(output_prediction_file, "w") as writer:
+                #     writer.write("\n".join(predictions))
 
     if training_args.push_to_hub:
         kwargs = {"finetuned_from": model_args.model_name_or_path, "tasks": "summarization"}

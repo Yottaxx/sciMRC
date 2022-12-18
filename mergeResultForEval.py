@@ -33,19 +33,20 @@ for model in ["t5"]:
             else:
                 path = f"{name}-paperSummarization-QA-{model}-2e5-16epoch-2x8bsz-{dataset}"
 
-            with open(f'{path}/generated_predictions.txt') as file:
-                line = file.readline()
-                while line:
-                    prediction.append(line.strip("\n"))
-                    line = file.readline()
+            count = 0
+            with jsonlines.open(f'{path}/generated_predictions.json') as reader:
+                for item in reader:
+                    prediction.append(item[count])
+                    count += 1
 
-                tempGolden = copy.deepcopy(golden[dataset])
+            tempGolden = copy.deepcopy(golden[dataset])
             assert len(tempGolden) == len(prediction)
             with jsonlines.open(f"{path}/prediction.json", "w") as writer:
                 for i in tqdm(range(len(tempGolden))):
                     tempGolden[i]["tgt"] = prediction[i]
                     writer.write(tempGolden[i])
+
             prefixEvalPath = "./filter_data/annotate"
             f = os.popen(
-                f"python3 {prefixEvalPath}/eval.py {prefixEvalPath}/clean{dataset.capitalize()}all.json {path}/prediction.json")
+                f"python3 {prefixEvalPath}/eval.py {prefixEvalPath}/clean{dataset.capitalize()}all.json {path}/prediction.json > ./metric/{dataset}{model}{name}.log 2>&1")
             print(f.read())

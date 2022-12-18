@@ -2,7 +2,7 @@ import datasets
 import jsonlines
 import evaluate
 import sys
-
+from transformers import T5Tokenizer
 from tqdm import tqdm
 
 bleu = evaluate.load("bleu")
@@ -22,6 +22,7 @@ id2subsetType = {
 
 
 def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
+    tokenizer = T5Tokenizer.from_pretrained("t5-base")
     subsetTypeDict = {
         0: {
             "g": [],
@@ -47,7 +48,7 @@ def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
     count = 0
     with jsonlines.open(pathG) as gReader, jsonlines.open(pathP) as pReader:
         for item in tqdm(gReader):
-            item["tgt"] = item["tgt"].strip().lower()
+            item["tgt"] = item["tgt"].strip()
 
             if onlyTask != -1:
                 if int(item["task"]) != removeTask:
@@ -55,6 +56,7 @@ def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
             elif removeTask != -1:
                 if int(item["task"]) == removeTask:
                     continue
+
             count += 1
             if item["type"] == 1:
                 if item["tgt"].lower().strip().startswith("yes"):
@@ -75,7 +77,7 @@ def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
             subsetTypeDict[0]["g"].append(item["tgt"])
 
         for item in tqdm(pReader):
-            item["tgt"] = item["tgt"].strip().lower()
+            item["tgt"] = item["tgt"].strip()
             if onlyTask != -1:
                 if int(item["task"]) != removeTask:
                     continue
@@ -93,7 +95,6 @@ def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
             elif item["type"] == 3:
                 subsetTypeDict[3]["p"].append(item["tgt"])
             elif item["type"] == 4:
-                print(item["tgt"])
                 subsetTypeDict[4]["p"].append(item["tgt"])
                 # if item["tgt"].lower().strip().startswith("unanswerable"):
                 #     subsetTypeDict[4]["p"].append(0)
@@ -111,10 +112,23 @@ def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
         if item == 1:
             subMetric = acc.compute(predictions=subsetTypeDict[item]["p"], references=subsetTypeDict[item]["g"])
         else:
+
             p = subsetTypeDict[item]["p"]
-            g = [[item] for item in subsetTypeDict[item]["g"]]
-            assert  len(p)==len(g)
+            g = subsetTypeDict[item]["g"]
+
             if len(p) != 0:
+                # p = tokenizer(p, max_length=128, truncation=True)["input_ids"]
+                # print(len(p))
+                # p = tokenizer.batch_decode(p, skip_special_tokens=True)
+                #
+                # g = tokenizer(g, max_length=128, truncation=True)["input_ids"]
+                # print(len(g))
+                # g = tokenizer.batch_decode(g, skip_special_tokens=True)
+                g = [[item] for item in g]
+
+                assert len(p) == len(g), f"{len(p)} {len(g)}"
+                # print(p[-10:])
+                # print(g[-10:])
                 subMetric1 = bleu.compute(predictions=p, references=g, max_order=1)
                 subMetric4 = bleu.compute(predictions=p, references=g, max_order=4)
                 subMetric = {'BLEU1': subMetric1, 'BLEU4': subMetric4}
@@ -127,9 +141,9 @@ def eval(pathP, pathG, removeTask=-1, onlyTask=-1):
     return result
 
 
-for i in [-1,1, 2, 3]:
+for i in [-1, 1, 2, 3]:
     print(f"----Removing Task {i}------")
-    result = eval(pathP, pathG,removeTask=i)
+    result = eval(pathP, pathG, removeTask=i)
     for key in result.keys():
         print("-----------------")
         print(id2subsetType[key])

@@ -25,7 +25,7 @@ do
   --validation_file ./filter_data/annotate/cleanDevall.json \
   --test_file ./filter_data/annotate/cleanTestall.json \
   --max_source_length 4096 \
-  --max_target_length 128 \
+  --max_target_length 512 \
   --pad_to_max_length false \
   --source_prefix "Question Answering: " \
   --do_train true \
@@ -62,7 +62,7 @@ do
   --validation_file ./filter_data/annotate/cleanDevall.json \
   --test_file ./filter_data/annotate/cleanDevall.json \
   --max_source_length 4096 \
-  --max_target_length 128 \
+  --max_target_length 512 \
   --pad_to_max_length false \
   --source_prefix "Question Answering: " \
   --do_train false \
@@ -98,7 +98,7 @@ do
   --validation_file ./filter_data/annotate/cleanTestall.json \
   --test_file ./filter_data/annotate/cleanTestall.json \
   --max_source_length 4096 \
-  --max_target_length 128 \
+  --max_target_length 512 \
   --pad_to_max_length false \
   --source_prefix "Question Answering: " \
   --do_train false \

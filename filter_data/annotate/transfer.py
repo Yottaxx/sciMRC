@@ -41,11 +41,11 @@ for dataset in ["Train", "Dev", "Test"]:
                 print(questions["questionType"])
                 qType.append(qtype2id[questions["questionType"].replace(" ", "").strip("\n")])
                 continue
-
             elif questions['answers'][0]['answer']['answerType'] in type2id.keys():
                 type.append(type2id[questions['answers'][0]['answer']['answerType']])
             else:
                 print(questions['answers'][0]['answer']['answerType'])
+
             task.append(int(questions["annotateType"]))
             qType.append(qtype2id[questions["questionType"].replace(" ", "").strip("\n")])
 
